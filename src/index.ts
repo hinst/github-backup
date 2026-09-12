@@ -4,11 +4,12 @@
  * into a `backup/` folder and packs them into `MyGitHub.7z`.
  */
 import { execFile } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const BACKUP_DIR = path.resolve("backup");
 const ARCHIVE_NAME = "MyGitHub.7z";
+const ARCHIVE_PATH = path.resolve(ARCHIVE_NAME);
 const ARCHIVED_SUBDIR = "_archived";
 
 // Skip Git LFS smudge during clone: LFS files are kept as small pointer files
@@ -92,7 +93,7 @@ function assignFolderNames(repos: RepoInfo[]): Map<string, string> {
 	return folders;
 }
 
-/** Clone a repo into the backup dir if it isn't already there. */
+/** Clone a repo into the backup dir. */
 async function cloneRepo(fullName: string, folder: string, archived: boolean): Promise<void> {
 	const dest = path.join(BACKUP_DIR, archived ? path.join(ARCHIVED_SUBDIR, folder) : folder);
 
@@ -117,7 +118,17 @@ async function main(): Promise<void> {
 	}
 	console.log(`Found ${repos.length} repositories.\n`);
 
-	mkdirSync(BACKUP_DIR, { recursive: true });
+	console.log("Starting a fresh backup (removing any existing backup/archive)...");
+if (existsSync(BACKUP_DIR)) {
+	rmSync(BACKUP_DIR, { recursive: true, force: true });
+	console.log(`- Removed ${BACKUP_DIR}`);
+}
+if (existsSync(ARCHIVE_PATH)) {
+	rmSync(ARCHIVE_PATH);
+	console.log(`- Removed ${ARCHIVE_PATH}`);
+}
+
+mkdirSync(BACKUP_DIR, { recursive: true });
 
 	const folders = assignFolderNames(repos);
 
