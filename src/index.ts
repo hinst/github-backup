@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Downloads all of the current user's GitHub repositories (via GitHub CLI)
  * into a `backup/` folder and packs them into `MyGitHub.7z`.
