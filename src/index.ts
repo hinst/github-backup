@@ -55,10 +55,9 @@ function run(
 	});
 }
 
-/** List all repos owned by the current user (or the given one). */
-async function listRepos(user?: string): Promise<RepoInfo[]> {
-	const endpoint = user ? `users/${user}/repos` : "user/repos";
-	const args = ["api", "--paginate", "--jq", ".[] | {fullName: .full_name, archived}", endpoint];
+/** List all repos of the current user. */
+async function listRepos(): Promise<RepoInfo[]> {
+	const args = ["api", "--paginate", "--jq", ".[] | {fullName: .full_name, archived}", "user/repos"];
 
 	let out: string;
 	try {
@@ -123,7 +122,7 @@ async function main(): Promise<void> {
 	await requireTool("7z", "Install 7-Zip (https://www.7-zip.org) and make sure `7z` is on your PATH.");
 
 	console.log("\nListing repositories...");
-	const repos = await listRepos(process.argv[2]);
+	const repos = await listRepos();
 	if (repos.length === 0) {
 		console.log("No repositories found. Nothing to do.");
 		return;
