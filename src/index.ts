@@ -8,13 +8,19 @@ import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 
 const BACKUP_DIR = path.resolve("backup");
-const ARCHIVE_NAME = "MyGitHub.7z";
+const ARCHIVE_NAME = `MyGitHub_${timestamp()}.7z`;
 const ARCHIVE_PATH = path.resolve(ARCHIVE_NAME);
 const ARCHIVED_SUBDIR = "_archived";
 
 // Skip Git LFS smudge during clone: LFS files are kept as small pointer files
 // and their objects are never downloaded (keeps .git/lfs empty).
 process.env.GIT_LFS_SKIP_SMUDGE = "1";
+
+/** Format a date as `YYYY-MM-DD_HH-mm-ss` (local time). */
+function timestamp(date = new Date()): string {
+	const p = (n: number) => n.toString().padStart(2, "0");
+	return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}_${p(date.getHours())}-${p(date.getMinutes())}-${p(date.getSeconds())}`;
+}
 
 interface RepoInfo {
 	fullName: string;
