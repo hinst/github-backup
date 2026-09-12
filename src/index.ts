@@ -97,11 +97,6 @@ function assignFolderNames(repos: RepoInfo[]): Map<string, string> {
 async function cloneRepo(fullName: string, folder: string, archived: boolean): Promise<void> {
 	const dest = path.join(BACKUP_DIR, archived ? path.join(ARCHIVED_SUBDIR, folder) : folder);
 
-	if (existsSync(dest)) {
-		console.log(`- ${fullName} (already present, skipping)`);
-		return;
-	}
-
 	console.log(`- ${fullName}`);
 	await run("gh", ["repo", "clone", fullName, dest], { inherit: true });
 }
