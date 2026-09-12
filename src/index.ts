@@ -156,7 +156,7 @@ async function main(): Promise<void> {
 
 	console.log(`\nAll ${repos.length} repositories cloned into ${BACKUP_DIR}`);
 	console.log(`Creating archive ${path.basename(ARCHIVE_PATH)}...`);
-	await run("7z", ["a", ARCHIVE_PATH, BACKUP_DIR], { inherit: true });
+	await run("7z", ["a", "-mx=9", ARCHIVE_PATH, BACKUP_DIR], { inherit: true });
 	console.log(`\nDone: ${ARCHIVE_PATH}`);
 }
 
