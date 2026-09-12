@@ -11,6 +11,10 @@ const BACKUP_DIR = path.resolve("backup");
 const ARCHIVE_NAME = "MyGitHub.7z";
 const ARCHIVED_SUBDIR = "_archived";
 
+// Skip Git LFS smudge during clone: LFS files are kept as small pointer files
+// and their objects are never downloaded (keeps .git/lfs empty).
+process.env.GIT_LFS_SKIP_SMUDGE = "1";
+
 interface RepoInfo {
   fullName: string;
   archived: boolean;
