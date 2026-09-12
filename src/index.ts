@@ -106,9 +106,21 @@ async function cloneRepo(fullName: string, folder: string, archived: boolean): P
 	await run("gh", ["repo", "clone", fullName, dest], { inherit: true });
 }
 
+/** Fail fast with a friendly message if a required external tool is missing. */
+async function requireTool(cmd: string, installHint: string): Promise<void> {
+	try {
+		await run(cmd, ["--help"]);
+	} catch {
+		throw new Error(
+			`Required command \'${cmd}\' was not found or failed to run.\n  ${installHint}`,
+		);
+	}
+}
+
 async function main(): Promise<void> {
 	console.log("Checking GitHub CLI authentication...");
 	await run("gh", ["auth", "status"]);
+	await requireTool("7z", "Install 7-Zip (https://www.7-zip.org) and make sure `7z` is on your PATH.");
 
 	console.log("\nListing repositories...");
 	const repos = await listRepos(process.argv[2]);
@@ -135,7 +147,7 @@ async function main(): Promise<void> {
 			await cloneRepo(repo.fullName, folder, repo.archived);
 		} catch (err) {
 			failures++;
-			console.error(`  ! Failed to clone ${repo}: ${err instanceof Error ? err.message : err}`);
+			console.error(`  ! Failed to clone ${repo.fullName}: ${err instanceof Error ? err.message : err}`);
 		}
 	}
 
