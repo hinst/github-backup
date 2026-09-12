@@ -55,10 +55,30 @@ async function listRepos(user?: string): Promise<string[]> {
   return out.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
 }
 
+/**
+ * Compute a unique folder name for each repo. If two repos share the same
+ * name (e.g. forks across owners), disambiguate with the owner:
+ * `owner__repo`.
+ */
+function assignFolderNames(fullNames: string[]): Map<string, string> {
+  const counts = new Map<string, number>();
+  for (const fullName of fullNames) {
+    const name = fullName.split("/")[1] ?? fullName;
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+
+  const folders = new Map<string, string>();
+  for (const fullName of fullNames) {
+    const [owner, name] = fullName.split("/");
+    const unique = name && (counts.get(name) ?? 0) > 1 ? `${owner}__${name}` : name;
+    folders.set(fullName, unique ?? fullName);
+  }
+  return folders;
+}
+
 /** Clone a repo into the backup dir if it isn't already there. */
-async function cloneRepo(fullName: string): Promise<void> {
-  const name = fullName.split("/")[1] ?? fullName;
-  const dest = path.join(BACKUP_DIR, name);
+async function cloneRepo(fullName: string, folder: string): Promise<void> {
+  const dest = path.join(BACKUP_DIR, folder);
 
   if (existsSync(dest)) {
     console.log(`- ${fullName} (already present, skipping)`);
@@ -83,10 +103,13 @@ async function main(): Promise<void> {
 
   mkdirSync(BACKUP_DIR, { recursive: true });
 
+  const folders = assignFolderNames(repos);
+
   let failures = 0;
   for (const repo of repos) {
+    const folder = folders.get(repo) ?? repo;
     try {
-      await cloneRepo(repo);
+      await cloneRepo(repo, folder);
     } catch (err) {
       failures++;
       console.error(`  ! Failed to clone ${repo}: ${err instanceof Error ? err.message : err}`);
