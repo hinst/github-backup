@@ -53,7 +53,7 @@ function run(
 /** List all repos owned by the current user (or the given one). */
 async function listRepos(user?: string): Promise<RepoInfo[]> {
 	const endpoint = user ? `users/${user}/repos` : "user/repos";
-	const args = ["api", "--paginate", "--jq", ".[] | {full_name, archived}", endpoint];
+	const args = ["api", "--paginate", "--jq", ".[] | {fullName: .full_name, archived}", endpoint];
 
 	let out: string;
 	try {
