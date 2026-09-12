@@ -57,7 +57,7 @@ function run(
 
 /** List all repos of the current user. */
 async function listRepos(): Promise<RepoInfo[]> {
-	const args = ["api", "--paginate", "--jq", ".[] | {fullName: .full_name, archived}", "user/repos"];
+	const args = ["api", "--paginate", "--jq", ".[] | select(.fork == false) | {fullName: .full_name, archived}", "user/repos"];
 
 	let out: string;
 	try {
@@ -76,7 +76,7 @@ async function listRepos(): Promise<RepoInfo[]> {
 
 /**
  * Compute a unique folder name for each repo. If two repos share the same
- * name (e.g. forks across owners), disambiguate with the owner:
+ * name (e.g. repos in different orgs), disambiguate with the owner:
  * `owner__repo`.
  */
 function assignFolderNames(repos: RepoInfo[]): Map<string, string> {
