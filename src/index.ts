@@ -132,7 +132,7 @@ async function main(): Promise<void> {
 	console.log("Starting a fresh backup (removing any existing backup folder)...");
 	if (existsSync(BACKUP_DIR)) {
 		rmSync(BACKUP_DIR, { recursive: true, force: true });
-		console.log(`- Removed ${BACKUP_DIR}`);
+		console.log(`- Removed ${BACKUP_DIR}\n`);
 	}
 
 	mkdirSync(BACKUP_DIR, { recursive: true });
