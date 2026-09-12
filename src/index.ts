@@ -119,16 +119,16 @@ async function main(): Promise<void> {
 	console.log(`Found ${repos.length} repositories.\n`);
 
 	console.log("Starting a fresh backup (removing any existing backup/archive)...");
-if (existsSync(BACKUP_DIR)) {
-	rmSync(BACKUP_DIR, { recursive: true, force: true });
-	console.log(`- Removed ${BACKUP_DIR}`);
-}
-if (existsSync(ARCHIVE_PATH)) {
-	rmSync(ARCHIVE_PATH);
-	console.log(`- Removed ${ARCHIVE_PATH}`);
-}
+	if (existsSync(BACKUP_DIR)) {
+		rmSync(BACKUP_DIR, { recursive: true, force: true });
+		console.log(`- Removed ${BACKUP_DIR}`);
+	}
+	if (existsSync(ARCHIVE_PATH)) {
+		rmSync(ARCHIVE_PATH);
+		console.log(`- Removed ${ARCHIVE_PATH}`);
+	}
 
-mkdirSync(BACKUP_DIR, { recursive: true });
+	mkdirSync(BACKUP_DIR, { recursive: true });
 
 	const folders = assignFolderNames(repos);
 
