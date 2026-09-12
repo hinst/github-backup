@@ -9,6 +9,12 @@ import path from "node:path";
 
 const BACKUP_DIR = path.resolve("backup");
 const ARCHIVE_NAME = "MyGitHub.7z";
+const ARCHIVED_SUBDIR = "_archived";
+
+interface RepoInfo {
+  fullName: string;
+  archived: boolean;
+}
 
 /** Run a command and resolve with its stdout (trimmed). */
 function run(
@@ -40,9 +46,9 @@ function run(
 }
 
 /** List all repos owned by the current user (or the given one). */
-async function listRepos(user?: string): Promise<string[]> {
+async function listRepos(user?: string): Promise<RepoInfo[]> {
   const endpoint = user ? `users/${user}/repos` : "user/repos";
-  const args = ["api", "--paginate", "--jq", ".[].full_name", endpoint];
+  const args = ["api", "--paginate", "--jq", ".[] | {full_name, archived}", endpoint];
 
   let out: string;
   try {
@@ -52,7 +58,11 @@ async function listRepos(user?: string): Promise<string[]> {
     throw err;
   }
 
-  return out.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+  return out
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => JSON.parse(line) as RepoInfo);
 }
 
 /**
@@ -60,7 +70,9 @@ async function listRepos(user?: string): Promise<string[]> {
  * name (e.g. forks across owners), disambiguate with the owner:
  * `owner__repo`.
  */
-function assignFolderNames(fullNames: string[]): Map<string, string> {
+function assignFolderNames(repos: RepoInfo[]): Map<string, string> {
+  const fullNames = repos.map((repo) => repo.fullName);
+
   const counts = new Map<string, number>();
   for (const fullName of fullNames) {
     const name = fullName.split("/")[1] ?? fullName;
@@ -77,8 +89,8 @@ function assignFolderNames(fullNames: string[]): Map<string, string> {
 }
 
 /** Clone a repo into the backup dir if it isn't already there. */
-async function cloneRepo(fullName: string, folder: string): Promise<void> {
-  const dest = path.join(BACKUP_DIR, folder);
+async function cloneRepo(fullName: string, folder: string, archived: boolean): Promise<void> {
+  const dest = path.join(BACKUP_DIR, archived ? path.join(ARCHIVED_SUBDIR, folder) : folder);
 
   if (existsSync(dest)) {
     console.log(`- ${fullName} (already present, skipping)`);
@@ -107,9 +119,9 @@ async function main(): Promise<void> {
 
   let failures = 0;
   for (const repo of repos) {
-    const folder = folders.get(repo) ?? repo;
+    const folder = folders.get(repo.fullName) ?? repo.fullName;
     try {
-      await cloneRepo(repo, folder);
+      await cloneRepo(repo.fullName, folder, repo.archived);
     } catch (err) {
       failures++;
       console.error(`  ! Failed to clone ${repo}: ${err instanceof Error ? err.message : err}`);
